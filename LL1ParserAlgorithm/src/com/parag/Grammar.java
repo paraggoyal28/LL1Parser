@@ -9,22 +9,31 @@ import java.util.Set;
 public class Grammar {
     int size;
     String startSymbol;
-    ArrayList<ArrayList<String>> lhsProduction = new ArrayList<>();
-    ArrayList<ArrayList<String>> rhsProduction = new ArrayList<>();
-    ArrayList<String> variables = new ArrayList<>();
-    ArrayList<String> terminals = new ArrayList<>();
-    ArrayList<ArrayList<String>> first = new ArrayList<>();
-    ArrayList<ArrayList<String>> follow = new ArrayList<>();
+    ArrayList<ArrayList<String>> lhsProduction = new ArrayList<>(100);
+    ArrayList<ArrayList<String>> rhsProduction = new ArrayList<>(100);
+    ArrayList<String> variables = new ArrayList<>(100);
+    ArrayList<String> terminals = new ArrayList<>(100);
+    ArrayList<ArrayList<String>> first = new ArrayList<>(100);
+    ArrayList<ArrayList<String>> follow = new ArrayList<>(100);
     ArrayList<Integer> pTable[][] = new ArrayList[100][100];
-    ArrayList<String> ans = new ArrayList<>();
-    ArrayList<String> dp = new ArrayList<>();
-    ArrayList<String> follSol = new ArrayList<>();
-    ArrayList<String> follPro = new ArrayList<>();
+    ArrayList<String> ans = new ArrayList<>(100);
+    ArrayList<String> dp = new ArrayList<>(100);
+    ArrayList<String> follSol = new ArrayList<>(100);
+    ArrayList<String> follPro = new ArrayList<>(100);
     String fileName;
 
     Grammar(String fileName) {
             this.fileName = fileName;
             this.startSymbol = null;
+            for(int i = 0; i < 100; ++i){
+                first.add(new ArrayList<String>());
+                follow.add(new ArrayList<String>());
+            }
+            for(int i = 0; i < 100; ++i){
+                for(int j = 0;j < 100; ++j) {
+                    pTable[i][j] = new ArrayList<Integer>();
+                }
+            }
     }
     boolean isUpper(char ch) {
         return ch >= 'A' && ch <= 'Z';
@@ -57,7 +66,9 @@ public class Grammar {
             if(startSymbol==null){
                 startSymbol = leftVar;
             }
-            variables.add(leftVar);
+            if(!variables.contains(leftVar)) {
+                variables.add(leftVar);
+            }
         } else {
             System.out.println("ERROR: Grammar not according to the READ_ME File norms1\\n Aborting...");
             throw new IOError(new Error("Wrong input"));
@@ -79,34 +90,30 @@ public class Grammar {
 
     public void readLine(String line) throws IOError{
         int currPos = 0;
-        char c = line.charAt(0);
         StringBuilder leftVar = new StringBuilder();
         StringBuilder rightVar;
         ArrayList<String> rhsTemp = new ArrayList<>();
-        while(c!=' ') {
-            leftVar.append(c);
+        while(currPos < line.length() && line.charAt(currPos)!=' ') {
+            leftVar.append(line.charAt(currPos));
             currPos++;
-            c = line.charAt(currPos);
         }
         lhsProduction.add(handleLeftProduction(leftVar.toString()));
         currPos += 3;
-        c = line.charAt(currPos);
         // handle extra spaces
-        while(c == ' '){
+        while(currPos < line.length() && line.charAt(currPos) == ' '){
             currPos++;
-            c = line.charAt(currPos);
         }
 
         // handle right production
-        while(c!='\n' && c!='\r' && c!='\0') {
-
+        while(currPos < line.length()) {
             rightVar = new StringBuilder();
-            while (c != ' ' && c != '\0' && c != '\n' && c != '\r') {
-                rightVar.append(c);
+            while (currPos < line.length() && line.charAt(currPos)!=' ' && line.charAt(currPos)!='\0' && line.charAt(currPos)!='\n' && line.charAt(currPos)!='\r') {
+                rightVar.append(line.charAt(currPos));
                 currPos++;
-                c = line.charAt(currPos);
             }
-
+            while(currPos < line.length() && line.charAt(currPos)==' ' ) {
+                currPos++;
+            }
             rhsTemp.add(handleRightProduction(rightVar.toString()));
         }
         rhsProduction.add(rhsTemp);
@@ -141,8 +148,8 @@ public class Grammar {
             return;
         }
         for(int i = 0; i < size; ++i) {
-            if(lhsProduction.get(i).equals(alpha)) {
-                for(int j = 0, n = rhsProduction.size(); j < n; ++j) {
+            if(lhsProduction.get(i).get(0).equals(alpha)) {
+                for(int j = 0, n = rhsProduction.get(i).size(); j < n; ++j) {
                     String rhsString = rhsProduction.get(i).get(j);
                     if(checkTerminal(rhsString) && !rhsString.equals("null")) {
                         if(!ans.contains(rhsString) && terminals.contains(rhsString)) {
@@ -221,7 +228,7 @@ public class Grammar {
             for(int j = 0, m = ans.size(); j < m; ++j){
                 firstArr.add(ans.get(j));
             }
-            first.add(firstArr);
+            first.set(i, firstArr);
         }
         ans.clear();
     }
@@ -259,7 +266,7 @@ public class Grammar {
                         break;
                     } else {
                         String lhsStr = lhsProduction.get(i).get(0);
-                        if(lhsStr.equals(s)) {
+                        if(!lhsStr.equals(s)) {
                             if(!follPro.contains(lhsStr)) {
                                 follPro.add(lhsStr);
                                 findFollow(lhsStr);
@@ -272,7 +279,7 @@ public class Grammar {
                         }
                     }
                 } else if(s.equals(rhsProduction.get(i).get(j)) && j+1==n){
-                    if(lhsProduction.get(i).get(0).equals(s)){
+                    if(!lhsProduction.get(i).get(0).equals(s)){
                         if(!follPro.contains(lhsProduction.get(i).get(0))) {
                             follPro.add(lhsProduction.get(i).get(0));
                             findFollow(lhsProduction.get(i).get(0));

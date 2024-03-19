@@ -1,2 +1,2 @@
 # LL1Parser
-Implementation of LL1 Parser in C++
+Leveraged advanced algorithms and data structures to create an efficient parsing tool capable of handling complex grammatical structures.
